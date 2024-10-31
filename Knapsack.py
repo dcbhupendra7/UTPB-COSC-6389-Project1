@@ -2,9 +2,7 @@ import math
 import random
 import tkinter as tk
 from tkinter import *
-import threading
 
-# Constants
 num_items = 100
 frac_target = 0.7
 min_value = 128
