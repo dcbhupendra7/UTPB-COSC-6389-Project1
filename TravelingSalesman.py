@@ -16,18 +16,19 @@ class Node:
         self.y = y
         self.index = index  # Unique identifier for the city
 
-    def draw(self, canvas, color='black'):
+    def draw(self, canvas, color='yellow'):
         canvas.create_oval(
-            self.x - city_scale, self.y - city_scale,
-            self.x + city_scale, self.y + city_scale,
+            self.x - city_scale * 2, self.y - city_scale * 2,
+            self.x + city_scale * 2, self.y + city_scale * 2,
             fill=color, outline='black'
         )
         canvas.create_text(
-            self.x, self.y - city_scale * 2,
+            self.x, self.y - city_scale * 3,
             text=str(self.index),
-            font=('Arial', 10),
+            font=('Arial', 12),
             fill='blue'
         )
+
 
 class Edge:
     def __init__(self, a, b):
