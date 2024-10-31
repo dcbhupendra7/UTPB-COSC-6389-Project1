@@ -149,7 +149,7 @@ class SubsetSumUI(tk.Tk):
 
     def run_backtracking_solver(self):
         self.solution = subset_sum(self.items_list, self.target)
-        self.draw_solution()
+        self.after(0, self.draw_solution)  # Schedule on main thread
 
     def start_pso_solver(self):
         if not self.items_list:
@@ -163,23 +163,30 @@ class SubsetSumUI(tk.Tk):
         pso_solution = pso_solver.solve()
         self.solution = [self.items_list[i] for i in range(len(self.items_list)) if
                          pso_solution and pso_solution[i] == 1]
-        self.draw_solution()
+        self.after(0, self.draw_solution)  # Schedule on main thread
 
     def draw_solution(self):
+        # Clear the previous solution or messages
+        self.clear_canvas()
+        self.draw_target()
+        self.draw_items()
+
+        # Display appropriate message based on solution availability
         if not self.solution:
+            # Display 'No Solution Found' if no solution is found
             self.canvas.create_text(400, 100, text='No Solution Found', font=('Arial', 18), fill='red')
         else:
+            # Display 'Solution Found' if a solution exists
             x_start = 250
             y_start = 150
-            self.canvas.create_text(300, 100, text='Solution Found:', font=('Arial', 18),
-                                    fill='green')
+            self.canvas.create_text(300, 100, text='Solution Found:', font=('Arial', 18), fill='green')
             for i, value in enumerate(self.solution):
                 self.canvas.create_rectangle(x_start, y_start + i * 30, x_start + 100, y_start + (i + 1) * 30,
                                              fill='lightgreen')
                 self.canvas.create_text(x_start + 50, y_start + i * 30 + 15, text=str(value), font=('Arial', 14))
 
-
 # Run the application
 if __name__ == '__main__':
     ui = SubsetSumUI()
     ui.mainloop()
+
