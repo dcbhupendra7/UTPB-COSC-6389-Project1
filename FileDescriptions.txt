@@ -1,0 +1,17 @@
+File Descriptions for Project
+
+1. Knapsack.py
+   - This file implements the Knapsack Problem, a classic optimization problem where the objective is to maximize the value of items that can be put in a knapsack without exceeding its capacity.
+   - The solution uses a genetic algorithm to approximate the optimal answer, involving selection, crossover, and mutation.
+
+2. TravellingSalesman.py
+   - This file implements the Traveling Salesman Problem (TSP), where the goal is to find the shortest possible route that visits each city exactly once and returns to the starting point.
+   - The solution uses simulated annealing to progressively improve the solution by exploring new routes.
+
+3. SubsetSumProblem.py
+   - This file solves the Subset Sum Problem, which involves finding a subset of a given set of integers that adds up to a specified target value.
+   - Two solvers are implemented: a backtracking solver that exhaustively searches all possible subsets, and a Particle Swarm Optimization (PSO) solver that finds an approximate solution efficiently.
+
+4. ParticleSwarmsSubset.py
+   - This file focuses on solving the Subset Sum Problem using Particle Swarm Optimization (PSO) specifically.
+   - PSO is a heuristic approach that is inspired by the collective behavior of birds flocking or fish schooling, and is used to find a solution by iteratively improving candidate solutions.
