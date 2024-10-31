@@ -168,6 +168,17 @@ class UI(tk.Tk):
         else:
             self.is_running = False
             print(f"Best distance found: {self.tsp_solver.best_distance}")
+            self.display_best_distance()
+
+    def display_best_distance(self):
+        # Add a message to display the best distance found
+        self.canvas.create_text(
+            padding, padding,
+            text=f"Best Distance Found: {int(self.tsp_solver.best_distance)}",
+            font=('Arial', 20, 'bold'),
+            fill='green',
+            anchor='nw'
+        )
 
     def draw_solution(self, solution):
         # Draw the path
