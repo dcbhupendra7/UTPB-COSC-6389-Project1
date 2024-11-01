@@ -1,8 +1,10 @@
 File Descriptions for Project
 
 1. Knapsack.py
-   - This file implements the Knapsack Problem, a classic optimization problem where the objective is to maximize the value of items that can be put in a knapsack without exceeding its capacity.
-   - The solution uses a genetic algorithm to approximate the optimal answer, involving selection, crossover, and mutation.
+- Solves the Knapsack Problem using a genetic algorithm.
+- Uses tournament selection for better solution diversity.
+- Implements uniform crossover and multi-point mutation.
+- Stops when a good solution is found or after a set number of generations.
 
 2. TravellingSalesman.py
    - This file implements the Traveling Salesman Problem (TSP), where the goal is to find the shortest possible route that visits each city exactly once and returns to the starting point.
