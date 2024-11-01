@@ -84,8 +84,9 @@ class GeneticAlgorithm:
         return sum(item.value for idx, item in enumerate(self.items_list) if genome[idx])
 
     def fitness(self, genome):
-        # Fitness function adjusted to reduce bias
-        return abs(self.gene_sum(genome) - self.target)
+        total_value = self.gene_sum(genome)
+        # Fitness is higher when total_value is closer to the target
+        return 1 / (1 + abs(self.target - total_value))
 
     def generate_initial_population(self):
         self.population = [[random.random() < frac_target for _ in range(len(self.items_list))] for _ in range(self.pop_size)]
@@ -93,22 +94,16 @@ class GeneticAlgorithm:
     def select_parents(self, population, fitnesses, tournament_size=3):
         def tournament():
             competitors = random.sample(list(zip(population, fitnesses)), tournament_size)
-            best = min(competitors, key=lambda x: x[1])[0]
+            best = max(competitors, key=lambda x: x[1])[0]
             return best
         return tournament(), tournament()
 
     def crossover(self, parent1, parent2):
         # Uniform crossover
-        child = []
-        for i in range(len(parent1)):
-            if random.random() < 0.5:
-                child.append(parent1[i])
-            else:
-                child.append(parent2[i])
-        return child
+        return [parent1[i] if random.random() < 0.5 else parent2[i] for i in range(len(parent1))]
 
     def mutate(self, genome):
-        # Mutation across the genome with certain probability
+        # Multi-point bit-flip mutation
         for i in range(len(genome)):
             if random.random() < self.mutation_rate:
                 genome[i] = not genome[i]
@@ -116,7 +111,7 @@ class GeneticAlgorithm:
 
     def evolve_population(self):
         fitnesses = [self.fitness(genome) for genome in self.population]
-        sorted_population = sorted(zip(self.population, fitnesses), key=lambda x: x[1])
+        sorted_population = sorted(zip(self.population, fitnesses), key=lambda x: x[1], reverse=True)
         new_population = [genome for genome, _ in sorted_population[:self.elitism_count]]
 
         while len(new_population) < self.pop_size:
@@ -272,25 +267,37 @@ class UI(tk.Tk):
         self.run_ga_step()
 
     def run_ga_step(self):
-        if self.ga.running and self.ga.generation < self.ga.num_generations:
-            best_genome, generation = self.ga.run_step()
-            item_sum = self.get_item_sum(best_genome)
-            self.clear_canvas()
-            self.draw_items()
-            self.draw_genome(best_genome, generation)
-            self.draw_target()
-            self.draw_sum(item_sum, self.target)
-            self.update()
-            print(f'Generation {generation}, Sum: {item_sum}, Fitness: {self.ga.fitness(best_genome)}')
+        if self.ga.generation == 0:
+            self.ga.generate_initial_population()
 
-            if self.ga.fitness(best_genome) == 0:
-                self.ga.running = False
-                print('Exact solution found!')
-            else:
-                self.after(sleep_time, self.run_ga_step)
+        self.ga.evolve_population()
+        self.ga.generation += 1
+
+        best_genome, generation = self.ga.best_genome, self.ga.generation
+        item_sum = self.get_item_sum(best_genome)
+
+        # Draw current state
+        self.clear_canvas()
+        self.draw_items()
+        self.draw_genome(best_genome, generation)
+        self.draw_target()
+        self.draw_sum(item_sum, self.target)
+        self.update()
+
+        # Print current generation info
+        print(f'Generation {generation}, Sum: {item_sum}, Fitness: {self.ga.fitness(best_genome)}')
+
+        # Check if we have met the target
+        if item_sum == self.target:
+            self.ga.running = False
+            print('Exact solution found!')
+        elif self.ga.running and self.ga.generation < self.ga.num_generations:
+            # Continue to next step if target not met and we haven't reached max generations
+            self.after(sleep_time, self.run_ga_step)
         else:
             self.ga.running = False
             print('Algorithm finished.')
+
 
 # this construct to instantiate our Window class
 if __name__ == '__main__':
