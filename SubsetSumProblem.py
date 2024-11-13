@@ -131,8 +131,7 @@ class SubsetSumUI(tk.Tk):
                 self.canvas.create_rectangle(x_start, y_start + i * 30, x_start + 100, y_start + (i + 1) * 30,
                                              fill='lightgreen')
                 self.canvas.create_text(x_start + 50, y_start + i * 30 + 15, text=str(value), font=('Arial', 14, 'bold'))
-
-
+                
 # Run the application
 if __name__ == '__main__':
     ui = SubsetSumUI()
