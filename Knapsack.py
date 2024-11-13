@@ -3,15 +3,18 @@ import random
 import tkinter as tk
 from tkinter import *
 
+# Problem parameters
 num_items = 100
 frac_target = 0.7
 min_value = 128
 max_value = 2048
 
+# UI parameters
 screen_padding = 25
 item_padding = 5
 stroke_width = 5
 
+# Genetic Algorithm parameters
 num_generations = 1000
 pop_size = 50
 elitism_count = 2
@@ -45,7 +48,7 @@ class Item:
 
     def draw(self, canvas, active=False):
         gap = 14
-        # Draw the rectangle
+        # Draw the rectangle representing the item
         if active:
             canvas.create_rectangle(self.x,
                                     self.y,
@@ -78,44 +81,79 @@ class GeneticAlgorithm:
         self.population = []
         self.generation = 0
         self.best_genome = None
-        self.running = False
 
+    # Calculate the sum of the values of items included in the genome
     def gene_sum(self, genome):
         return sum(item.value for idx, item in enumerate(self.items_list) if genome[idx])
 
+    # Fitness function with penalty for exceeding target value
     def fitness(self, genome):
         total_value = self.gene_sum(genome)
-        # Fitness is higher when total_value is closer to the target
+        # Penalize if exceeding target, otherwise reward being close to target
+        if total_value > self.target:
+            return -abs(total_value - self.target) * 2
         return 1 / (1 + abs(self.target - total_value))
 
+    # Generate the initial population randomly
     def generate_initial_population(self):
         self.population = [[random.random() < frac_target for _ in range(len(self.items_list))] for _ in range(self.pop_size)]
 
-    def select_parents(self, population, fitnesses, tournament_size=3):
-        def tournament():
-            competitors = random.sample(list(zip(population, fitnesses)), tournament_size)
-            best = max(competitors, key=lambda x: x[1])[0]
-            return best
-        return tournament(), tournament()
+    # Select parents using Stochastic Universal Sampling (SUS)
+    def sus_select_parents(self, population, fitnesses):
+        total_fitness = sum(fitnesses)
+        point_distance = total_fitness / 2  # Two parents are selected
+        start_point = random.uniform(0, point_distance)
 
+        parents = []
+        current_sum = 0
+        for genome, fitness in zip(population, fitnesses):
+            current_sum += fitness
+            if len(parents) < 2 and current_sum >= start_point:
+                parents.append(genome)
+                start_point += point_distance
+        return parents[0], parents[1]
+
+    # Two-point crossover to generate new offspring
     def crossover(self, parent1, parent2):
-        # Uniform crossover
-        return [parent1[i] if random.random() < 0.5 else parent2[i] for i in range(len(parent1))]
+        length = len(parent1)
+        point1 = random.randint(0, length // 2)
+        point2 = random.randint(point1 + 1, length - 1)
 
+        child = parent1[:point1] + parent2[point1:point2] + parent1[point2:]
+        return child
+
+    # Multi-point mutation for better diversity
     def mutate(self, genome):
-        # Multi-point bit-flip mutation
         for i in range(len(genome)):
             if random.random() < self.mutation_rate:
                 genome[i] = not genome[i]
         return genome
 
+    # Maintain diversity by using fitness sharing
+    def fitness_sharing(self, population, fitnesses):
+        diversity_factor = 0.1
+        shared_fitnesses = []
+        for i in range(len(population)):
+            shared_fitness = fitnesses[i]
+            for j in range(len(population)):
+                if i != j and self.hamming_distance(population[i], population[j]) < len(population[i]) * diversity_factor:
+                    shared_fitness *= 0.9  # Reduce fitness if similar to others
+            shared_fitnesses.append(shared_fitness)
+        return shared_fitnesses
+
+    # Calculate Hamming distance between two genomes
+    def hamming_distance(self, genome1, genome2):
+        return sum(g1 != g2 for g1, g2 in zip(genome1, genome2))
+
+    # Evolve the population to the next generation
     def evolve_population(self):
         fitnesses = [self.fitness(genome) for genome in self.population]
-        sorted_population = sorted(zip(self.population, fitnesses), key=lambda x: x[1], reverse=True)
+        shared_fitnesses = self.fitness_sharing(self.population, fitnesses)  # Use fitness sharing
+        sorted_population = sorted(zip(self.population, shared_fitnesses), key=lambda x: x[1], reverse=True)
         new_population = [genome for genome, _ in sorted_population[:self.elitism_count]]
 
         while len(new_population) < self.pop_size:
-            parent1, parent2 = self.select_parents([p for p, _ in sorted_population], [f for _, f in sorted_population])
+            parent1, parent2 = self.sus_select_parents([p for p, _ in sorted_population], [f for _, f in sorted_population])
             child = self.crossover(parent1, parent2)
             child = self.mutate(child)
             new_population.append(child)
@@ -219,7 +257,7 @@ class UI(tk.Tk):
         w = (self.width - screen_padding) / 8 - screen_padding
         h = self.height / 2 - screen_padding
         self.canvas.create_rectangle(x, y, x + w, y + h, fill='yellow')
-        self.canvas.create_text(x + w // 2, y + h + screen_padding, text=f'Target: {int(self.target)}', font=('Arial', 18, 'bold'),fill='green')
+        self.canvas.create_text(x + w // 2, y + h + screen_padding, text=f'Target: {int(self.target)}', font=('Arial', 18, 'bold'), fill='green')
 
     def draw_sum(self, item_sum, target):
         x = (self.width - screen_padding) / 8 * 6
@@ -231,7 +269,7 @@ class UI(tk.Tk):
         else:
             h = 0
         self.canvas.create_rectangle(x, y, x + w, y + h, fill='orange')
-        self.canvas.create_text(x + w // 2, y + h + screen_padding, text=f'Sum: {int(item_sum)}', font=('Arial', 18, 'bold'),fill='yellow')
+        self.canvas.create_text(x + w // 2, y + h + screen_padding, text=f'Sum: {int(item_sum)}', font=('Arial', 18, 'bold'), fill='yellow')
 
     def draw_genome(self, genome, gen_num):
         for idx, item in enumerate(self.items_list):
@@ -240,7 +278,7 @@ class UI(tk.Tk):
         y = screen_padding
         w = (self.width - screen_padding) / 8 - screen_padding
         h = self.height / 4 * 3
-        self.canvas.create_text(x + w, y + h + screen_padding * 2, text=f'Generation {gen_num}', font=('Arial', 18,'bold'),fill='red')
+        self.canvas.create_text(x + w, y + h + screen_padding * 2, text=f'Generation {gen_num}', font=('Arial', 18, 'bold'), fill='red')
 
     def get_item_sum(self, genome):
         return sum(item.value for idx, item in enumerate(self.items_list) if genome[idx])
@@ -248,7 +286,7 @@ class UI(tk.Tk):
     def set_target(self):
         target_set = []
         for x in range(int(num_items * frac_target)):
-            item = self.items_list[random.randint(0, len(self.items_list)-1)]
+            item = self.items_list[random.randint(0, len(self.items_list) - 1)]
             while item in target_set:
                 item = self.items_list[random.randint(0, len(self.items_list) - 1)]
             target_set.append(item)
@@ -298,8 +336,7 @@ class UI(tk.Tk):
             self.ga.running = False
             print('Algorithm finished.')
 
-
-# this construct to instantiate our Window class
+# Instantiate and run the UI
 if __name__ == '__main__':
     ui = UI()
     ui.mainloop()
