@@ -182,6 +182,7 @@ class UI(tk.Tk):
 
         self.canvas = Canvas(self)
         self.canvas.place(x=0, y=0, width=self.width, height=self.height)
+        self.canvas.configure(bg='black')  # Set background to black
         self.items_list = []
 
         # Menu bar setup
@@ -269,7 +270,17 @@ class UI(tk.Tk):
         else:
             h = 0
         self.canvas.create_rectangle(x, y, x + w, y + h, fill='orange')
-        self.canvas.create_text(x + w // 2, y + h + screen_padding, text=f'Sum: {int(item_sum)}', font=('Arial', 18, 'bold'), fill='yellow')
+        
+        # Calculate the difference between sum and target
+        difference = item_sum - target
+        difference_text = f"({'+' if difference > 0 else ''}{int(difference)})" if difference != 0 else ""
+        
+        # Display sum with difference
+        sum_text = f'Sum: {int(item_sum)}{difference_text}'
+        self.canvas.create_text(x + w // 2, y + h + screen_padding, 
+                              text=sum_text, 
+                              font=('Arial', 18, 'bold'), 
+                              fill='blue')
 
     def draw_genome(self, genome, gen_num):
         for idx, item in enumerate(self.items_list):
