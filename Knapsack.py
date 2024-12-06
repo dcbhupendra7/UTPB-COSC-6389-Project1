@@ -67,7 +67,7 @@ class Item:
                                     width=stroke_width)
 
         # Draw the value text with more spacing
-        canvas.create_text(self.x + self.w + gap, self.y + self.h / 2, text=f'{self.value}', anchor='w', font=('Arial', 12), fill='white')
+        canvas.create_text(self.x + self.w + gap, self.y + self.h / 2, text=f'{self.value}', anchor='w', font=('Arial', 12), fill='black')
 
 # Genetic Algorithm Class
 class GeneticAlgorithm:
@@ -182,7 +182,7 @@ class UI(tk.Tk):
 
         self.canvas = Canvas(self)
         self.canvas.place(x=0, y=0, width=self.width, height=self.height)
-        self.canvas.configure(bg='black')  # Set background to black
+        self.canvas.configure(bg='white')  # Set background to white
         self.items_list = []
 
         # Menu bar setup
