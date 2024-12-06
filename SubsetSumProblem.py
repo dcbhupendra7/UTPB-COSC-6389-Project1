@@ -15,7 +15,7 @@ target_value = random.randint(50, 200)
 def subset_sum(items, target, partial=[], partial_sum=0, ui=None, iteration=[0]):
     if ui:
         iteration[0] += 1
-        ui.update_backtracking(iteration[0], partial_sum)
+        ui.update_backtracking(iteration[0], partial_sum, partial)  # Pass `partial` to update_backtracking
         time.sleep(0.5)
 
     if partial_sum == target:
@@ -107,7 +107,7 @@ class SubsetSumUI(tk.Tk):
         self.geometry(f"{self.width}x{self.height}+0+0")
         self.state("zoomed")
 
-        self.canvas = Canvas(self)
+        self.canvas = Canvas(self, bg='white')  # Set background to white
         self.canvas.place(x=0, y=0, width=self.width, height=self.height)
 
         # Menu bar setup
@@ -141,11 +141,11 @@ class SubsetSumUI(tk.Tk):
         for i, value in enumerate(self.items_list):
             rect = self.canvas.create_rectangle(x_start, y_start + i * 30, x_start + 100, y_start + (i + 1) * 30,
                                                 fill='lightblue')
-            text = self.canvas.create_text(x_start + 50, y_start + i * 30 + 15, text=str(value), font=('Arial', 14))
+            text = self.canvas.create_text(x_start + 50, y_start + i * 30 + 15, text=str(value), font=('Arial', 14, 'bold'))
             self.partial_visuals.append((rect, text))
 
     def draw_target(self):
-        self.canvas.create_text(150, 100, text=f'Target: {self.target}', font=('Arial', 18), fill='darkorange')
+        self.canvas.create_text(150, 100, text=f'Target: {self.target}', font=('Arial', 18, 'bold'), fill='red')
 
     def start_backtracking_solver(self):
         if not self.items_list:
@@ -184,20 +184,28 @@ class SubsetSumUI(tk.Tk):
             for i, item_value in enumerate(self.items_list):
                 if item_value == value:
                     rect, text = self.partial_visuals[i]
-                    self.canvas.itemconfig(rect, fill='yellow')
+                    self.canvas.itemconfig(rect, fill='black')
                     break
 
         difference = self.target - partial_sum
         sign = '+' if difference > 0 else ''
         self.canvas.create_text(400, 50, text=f'Current Partial Sum: {partial_sum} (Difference: {sign}{difference})',
-                                font=('Arial', 16), fill='yellow', tag='partial_sum')
+                                font=('Arial', 16, 'bold'), fill='yellow', tag='partial_sum')
 
-    def update_backtracking(self, iteration, partial_sum):
+    def update_backtracking(self, iteration, partial_sum, partial=[]):
         self.canvas.delete('iteration_info')
         difference = self.target - partial_sum
         sign = '+' if difference > 0 else ''
-        self.canvas.create_text(600, 50, text=f'Backtracking Iteration: {iteration}, Partial Sum: {partial_sum} (Difference: {sign}{difference})',
-                                font=('Arial', 16), fill='yellow', tag='iteration_info')
+
+        # Highlight the selected stack
+        self.clear_partial_highlights()  # Clear previous highlights
+        for value in partial:
+            for i, item_value in enumerate(self.items_list):
+                if item_value == value:
+                    rect, text = self.partial_visuals[i]
+                    self.canvas.itemconfig(rect, fill='black')
+
+        self.canvas.create_text(600, 50, text=f'Backtracking Iteration: {iteration}, Partial Sum: {partial_sum} (Difference: {sign}{difference})', font=('Arial', 16, 'bold'), fill='black', tag='iteration_info')
 
     def clear_partial_highlights(self):
         for rect, text in self.partial_visuals:
@@ -215,21 +223,20 @@ class SubsetSumUI(tk.Tk):
         for i, selected in enumerate(best_position):
             if selected == 1:
                 rect, text = self.partial_visuals[i]
-                self.canvas.itemconfig(rect, fill='yellow')
+                self.canvas.itemconfig(rect, fill='black')
 
         if best_value == 0:
             status_text = "Perfect Match Found!"
         else:
             status_text = f"Current Sum: {current_sum}({sign}{difference})"
 
-        self.canvas.create_text(400, 50, text=f'Iteration: {iteration + 1}, {status_text}',
-                                font=('Arial', 16), fill='yellow', tag='iteration_info')
+        self.canvas.create_text(400, 50, text=f'Iteration: {iteration + 1}, {status_text}', font=('Arial', 16, 'bold'), fill='black', tag='iteration_info')
 
     def draw_solution(self):
         self.canvas.delete('solution_info')
 
         if not self.solution:
-            self.canvas.create_text(400, 100, text='No Solution Found', font=('Arial', 18), fill='red', tag='solution_info')
+            self.canvas.create_text(400, 100, text='No Solution Found', font=('Arial', 18, 'bold'), fill='red', tag='solution_info')
         else:
             x_start = 250
             y_start = 150

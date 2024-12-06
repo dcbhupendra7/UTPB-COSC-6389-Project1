@@ -142,7 +142,7 @@ class UI(tk.Tk):
         self.state("zoomed")
 
         # Create a canvas for drawing cities and roads
-        self.canvas = Canvas(self)
+        self.canvas = Canvas(self, bg='white')  # Set background to white
         self.canvas.place(x=0, y=0, width=self.width, height=self.height)
         self.w = self.width - padding * 2
         self.h = self.height - padding * 2
